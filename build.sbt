@@ -1,16 +1,27 @@
-scalaVersion := "3.8.3" // A Long Term Support version.
+import scala.scalanative.build.LTO
+import scala.scalanative.build.Mode
+import scala.scalanative.build.GC
 
-enablePlugins(ScalaNativePlugin)
+lazy val commonSettings = Seq(
+  scalaVersion := "3.8.4"
+)
 
-// set to Debug for compilation details (Info is default)
-logLevel := Level.Info
+lazy val root = project
+  .in(file("."))
+  .aggregate(app, core)
 
-// import to add Scala Native options
-import scala.scalanative.build._
+lazy val app = project
+  .in(file("app"))
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    commonSettings
+  )
+  .dependsOn(core)
 
-// defaults set with common options shown
-nativeConfig ~= { c =>
-  c.withLTO(LTO.none) // thin
-    .withMode(Mode.debug) // releaseFast
-    .withGC(GC.immix) // commix
-}
+lazy val core = project
+  .in(file("core"))
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    commonSettings,
+    libraryDependencies += "org.typelevel" %% "cats-parse" % "1.1.0"
+  )
