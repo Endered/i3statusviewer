@@ -6,6 +6,12 @@ lazy val commonSettings = Seq(
   scalaVersion := "3.8.4"
 )
 
+// workaround for output test result
+ThisBuild / Test / testOptions += Tests.Argument(
+  new TestFramework("munit.Framework"),
+  "--logger=sbt"
+)
+
 lazy val root = project
   .in(file("."))
   .aggregate(app, core)
@@ -23,5 +29,6 @@ lazy val core = project
   .enablePlugins(ScalaNativePlugin)
   .settings(
     commonSettings,
-    libraryDependencies += "org.typelevel" %% "cats-parse" % "1.1.0"
+    libraryDependencies += "org.typelevel" %% "cats-parse" % "1.1.0",
+    libraryDependencies += "org.scalameta" %% "munit" % "1.3.6" % Test
   )

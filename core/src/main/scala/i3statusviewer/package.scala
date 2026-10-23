@@ -11,11 +11,13 @@ package object i3statusviewer {
   def string(s: String): Parser[String] = Parser.string(s).as(s)
   def commaSeparated(
       element: Parser[String]
-  ): Parser[String] = {
-    for {
+  ): Parser0[String] = {
+    val parseMany = for {
       first <- element.blankAfter
       others <- (string(",").blankAfter cat element).rep0.string
     } yield first ++ others
+
+    parseMany.?.map(_.getOrElse(""))
   }
 
   lazy val jsonBlank: Parser0[String] =
@@ -42,7 +44,7 @@ package object i3statusviewer {
   lazy val json = jsonValue.blankSorround
 
   extension (p1: Parser[String]) {
-    infix def cat(p2: => Parser[String]): Parser[String] = (p1 ~ p2).string
+    infix def cat(p2: => Parser0[String]): Parser[String] = (p1 ~ p2).string
     def blankSorround: Parser[String] = p1.surroundedBy(jsonBlank)
     def blankBefore = jsonBlank.with1 *> p1
     def blankAfter = p1 <* jsonBlank
