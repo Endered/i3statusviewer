@@ -49,18 +49,19 @@ object parser {
 
   def startUpdating(commandName: String): Unit = {
     def stdout(s: String) = {
-      val results = next(s)
-      results.foreach {
-        case ParseResult.Value(body) =>
-          val parsed = io.circe.parser.decode[Seq[StatusForParser]](body)
-          parsed.foreach { statuses =>
-            val trimmedStatus = statuses.collect {
-              case StatusForParser(name = Some(name), full_text = full_text) =>
-                Status(name = name, fullText = full_text)
-            }
-            currentStatuses_ = Some(trimmedStatus)
-          }
-        case _ => ()
+      for {
+        body <- next(s).collect { case ParseResult.Value(body) =>
+          body
+        }.lastOption
+        statuses <- io.circe.parser
+          .decode[Seq[StatusForParser]](body)
+          .toOption
+        convertedStatuses = statuses.collect {
+          case StatusForParser(name = Some(name), full_text = full_text) =>
+            Status(name = name, fullText = full_text)
+        }
+      } yield {
+        currentStatuses_ = Some(convertedStatuses)
       }
     }
     def stderr(s: String) = ()
@@ -114,7 +115,7 @@ def entrypoint(args: Array[String]): Unit = {
   val config = Parser[Config].constructOrExit(args)
   parser.startUpdating(config.i3statusCommand)
   App.run(
-    quitKey = Key.Char('q'),
+    quitKey = Key.Char('q')
   )
   sys.exit()
 }
