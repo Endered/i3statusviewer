@@ -25,7 +25,7 @@ $ echo '
 >  [
 >  [{"hoge": "fuga"}],
 >  [{"piyo": "piyopiyo"}],
->  ' | i3statusviewer-translator decode
+>  ' | ./i3statusviewer-translator decode
 {"version": 1}
 [{"hoge": "fuga"}]
 [{"piyo": "piyopiyo"}]
@@ -36,7 +36,7 @@ $ echo '
 > {"version": 1}
 > [{"hoge": "fuga"}]
 > [{"piyo": "piyopiyo"}]
-> ' | i3statusviewer-translator encode
+> ' | ./i3statusviewer-translator encode
 {"version": 1}
 [
 [{"hoge": "fuga"}],
