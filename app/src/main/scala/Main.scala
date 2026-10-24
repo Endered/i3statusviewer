@@ -1,5 +1,9 @@
 import scala.io.StdIn
 import scala.util.chaining.given
+import i3statusviewer.IncrementalParser
+import i3statusviewer.IncrementalParser.ParseResult
+import scala.scalanative.runtime.filename
+import java.nio.file.Paths
 
 enum I3StatusState {
   case ReadHeader
@@ -10,56 +14,18 @@ enum I3StatusState {
 
 object Main {
   def main(args: Array[String]): Unit = {
-    var state = I3StatusState.ReadHeader
-    var contents = ""
+    val entries = Map(
+      "i3statusviewer-translator" -> i3statusviewer.translator.entrypoint,
+      "i3statusviewer-viewer" -> i3statusviewer.viewer.entrypoint
+    )
+    val appName = Paths.get(filename).getFileName().toString()
 
-    def parse(): Boolean = {
-      val parsed = state match {
-        case I3StatusState.ReadHeader =>
-          i3statusviewer.json.parse(contents).tap {
-            case Right(_) => state = I3StatusState.ReadBeggingArray
-            case _        => ()
-          }
-
-        case I3StatusState.ReadBeggingArray =>
-          i3statusviewer
-            .string("[")
-            .surroundedBy(i3statusviewer.jsonBlank)
-            .parse(contents)
-            .tap {
-              case Right(_) => state = I3StatusState.ReadValue
-              case _        => ()
-            }
-        case I3StatusState.ReadValue =>
-          i3statusviewer.json.parse(contents).tap {
-            case Right(_) => state = I3StatusState.ReadComma
-            case _        => ()
-          }
-        case I3StatusState.ReadComma =>
-          i3statusviewer
-            .string(",")
-            .surroundedBy(i3statusviewer.jsonBlank)
-            .parse(contents)
-            .tap {
-              case Right(_) => state = I3StatusState.ReadValue
-              case _        => ()
-            }
-      }
-
-      parsed match {
-        case Left(_) =>
-          false
-        case Right((remind, parsed)) =>
-          println(parsed)
-          contents = remind
-          true
-      }
-    }
-
-    while (true) {
-      val line = StdIn.readLine()
-      contents += line
-      while (parse()) {}
+    entries.get(appName).match {
+      case None =>
+        System.err.println(s"Unknown argv[0] = ${appName}")
+        System.err.println("Please rename it to one of the below")
+        System.err.println(entries.keys.toList.sorted.mkString(", "))
+      case Some(entry) => entry(args)
     }
   }
 }

@@ -16,11 +16,20 @@ lazy val root = project
   .in(file("."))
   .aggregate(app, core)
 
+val circeVersion = "0.14.16"
+
 lazy val app = project
   .in(file("app"))
   .enablePlugins(ScalaNativePlugin)
   .settings(
-    commonSettings
+    commonSettings,
+    libraryDependencies += "com.lihaoyi" %% "mainargs" % "0.7.7",
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-generic",
+      "io.circe" %% "circe-parser"
+    ).map(_ % circeVersion),
+    libraryDependencies += "xyz.matthieucourt" %% "layoutz" % "0.8.0"
   )
   .dependsOn(core)
 
