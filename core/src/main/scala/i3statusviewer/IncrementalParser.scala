@@ -63,7 +63,8 @@ case class IncrementalParser(buffer: String, state: State) {
 
 object IncrementalParser {
 
-  def default: IncrementalParser = IncrementalParser(buffer = "", state = State.ReadHeader)
+  def default: IncrementalParser =
+    IncrementalParser(buffer = "", state = State.ReadHeader)
 
   enum State {
     case ReadHeader
