@@ -66,11 +66,7 @@ object parser {
     }
     def stderr(s: String) = ()
 
-    new Thread {
-      override def run(): Unit = {
-        sys.process.Process(commandName).!(ProcessLogger(stdout, stderr))
-      }
-    }.start
+    sys.process.Process(commandName).run(ProcessLogger(stdout, stderr))
   }
 }
 

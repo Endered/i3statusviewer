@@ -65,7 +65,9 @@ lazy val app = project
     ).map(_ % circeVersion),
     libraryDependencies += "xyz.matthieucourt" %% "layoutz" % "0.8.0",
 
-    publishNative / nativeConfig ~= { _.withLinkingOptions(linkingOptions) },
+    publishNative / nativeConfig ~= {
+      _.withLinkingOptions(linkingOptions).withMultithreading(true)
+    },
     publishNative := Def.uncached {
       val conv = fileConverter.value
 
