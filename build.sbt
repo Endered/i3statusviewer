@@ -3,6 +3,7 @@ import scala.scalanative.build.Mode
 import scala.scalanative.build.GC
 import scala.util.Try
 import java.nio.file.Paths
+import java.nio.file.Path
 
 lazy val commonSettings = Seq(
   scalaVersion := "3.8.4",
@@ -17,6 +18,8 @@ lazy val commonSettings = Seq(
 lazy val updateLicensesFile = taskKey[Boolean]("update license file")
 lazy val ensureLicensesFileUpdated =
   taskKey[Unit]("check license file is up to dated")
+
+lazy val publishNative = taskKey[Path]("publish native linked file")
 
 lazy val rootPath = Paths.get(".")
 
@@ -42,6 +45,12 @@ lazy val root = project
   )
   .aggregate(app, core)
 
+lazy val linkingOptions = if (sys.env.contains("SCALANATIVE_STATIC_LINK")) {
+  Seq("-static")
+} else {
+  Seq()
+}
+
 lazy val circeVersion = "0.14.16"
 lazy val app = project
   .in(file("app"))
@@ -54,7 +63,18 @@ lazy val app = project
       "io.circe" %% "circe-generic",
       "io.circe" %% "circe-parser"
     ).map(_ % circeVersion),
-    libraryDependencies += "xyz.matthieucourt" %% "layoutz" % "0.8.0"
+    libraryDependencies += "xyz.matthieucourt" %% "layoutz" % "0.8.0",
+
+    publishNative / nativeConfig ~= { _.withLinkingOptions(linkingOptions) },
+    publishNative := Def.uncached {
+      val conv = fileConverter.value
+
+      val nativeLinked = conv.toPath((Compile / nativeLinkReleaseFull).value)
+      val output = rootPath / "dist" / "i3statusviewer"
+      IO.createDirectory(output.getParent().toFile())
+      IO.copyFile(nativeLinked.toFile(), output.toFile())
+      output
+    }
   )
   .dependsOn(core)
 
