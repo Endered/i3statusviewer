@@ -64,7 +64,7 @@ def entrypoint(args: Array[String]) = {
       System.err.println(s"Unknown mode specified: ${mode}")
       sys.exit(1)
     case None =>
-      System.err.println("Please specify mode (decode / decode)")
+      System.err.println("Please specify mode (encode / decode)")
       sys.exit(1)
   }
 }
